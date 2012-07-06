@@ -47,6 +47,18 @@ trait Response {
   def result: JObject
 }
 
+object Timeline {
+  def ns(cmd: String) = "Timeline.%s" format cmd
+  def start = new Method {
+    val id = Ids.next
+    val method = "start"
+  }
+  def stop =  new Method {
+    val id = Ids.next
+    val method = "stop"
+  }
+}
+
 object Network {
   def ns(cmd: String) = "Network.%s" format cmd
   def enable = new Method {
