@@ -2,7 +2,6 @@ package chrome
 
 import dispatch._
 import tubesocks._
-import java.util.concurrent.CountDownLatch
 
 import net.liftweb.json.JArray
 
@@ -15,13 +14,14 @@ object Server {
   def main(args: Array[String]) {
     args.toList match {
       case List(uri) =>
-        @volatile var lat: Option[CountDownLatch] = None
+        val srvc = NHttp.anylocal
+        val countdown = new Countdown(0)({ srvc.stop() })
         Http(url(uri) OK Json.parsed).either.right.map { js =>
-          lat = js match {
+          js match {
             case JArray(ary) =>
-              Some(new CountDownLatch(ary.size))
+              countdown.reset(ary.size)
             case _ => 
-              throw new RuntimeException("expected json array from chrome")
+              System.err.println("expected json array from chrome")
           }
           TabInfo.fromJson(js)
                   .filter(!_.title.startsWith("chrome-extension:"))
@@ -31,26 +31,32 @@ object Server {
                         println("[%s] open" format info.title)
                       case Close(s) =>
                         println("[%s] closed" format info.title)
-                        lat.map(_.countDown())
+                        countdown.tick
                       case Message(m) =>
                         println("[%s] %s" format(info.title, m))
                     })
                  }
-          }().fold(identity, { tabs =>
+          }().fold({ err =>
+            System.err.println("failed to resolve chrome debug info %s" format err.getMessage)
+            Server.shutdown
+          }, { tabs =>
             println("communicating with %d chrome tabs" format tabs.size)          
-            NHttp.anylocal.handler(Planify{
+            srvc.handler(Planify{
               case Path(Seg("tldr" :: Nil)) =>
-                ResponseString(tabs.map(_.toString).mkString("\n"))
+                ResponseString(tabs.map(_.info.toString).mkString("\n"))
             }).handler(
-              Planify(Debug.path)).run { s =>
+              Planify(Debug.path)).run({ s =>
                 println("server started @ %s" format s.url)
-                lat.map(_.await())                
-              }
+              }, { s =>
+                println("shutting down %s connections" format tabs.filter(_.socket.open).size)
+                tabs.foreach(_.socket.close)
+                println("shutting down dispatch")
+                Server.shutdown
+              })
           })
-      case _ => 
+      case _ =>
         System.err.println("usage: [debugurl]")
     }
-    shutdown
   }
   def shutdown = Http.shutdown()
 }
