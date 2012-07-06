@@ -74,7 +74,7 @@ object Server {
                   sd, bold(tabs.filter(_.socket.open).size)))
                 tabs.foreach(_.socket.close)
                 Server.shutdown
-                println("have a %s day" format(green("great")))
+                println("%s safely" format green("landed"))
               }
               .run({ s =>
                 InfoFile.write(s.url)
