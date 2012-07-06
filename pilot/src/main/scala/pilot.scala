@@ -15,15 +15,18 @@ object Pilot {
   def apply(args: Array[String]): Int = {
     args.toList match {
       case List("start", extras @ _*) =>
-        val DebugUri = """-u=(.+)""".r
-        val uri = extras match {
-          case List(DebugUri(uri)) => uri
-          case _ => "http://localhost:9222/json"
-        }
-        // todo. pilot should start a server
-        // and write a .pid file which contains its host and port
-        ok {
-          Server.main(Array(uri))
+        Server.InfoFile.file match {
+          case ne if(!ne.exists) =>
+            val DebugUri = """-u=(.+)""".r
+            val uri = extras match {
+              case List(DebugUri(uri)) => uri
+              case _ => "http://localhost:9222/json"
+            }
+            ok {
+              Server.main(Array(uri))
+            }
+          case _ =>
+            err("server is already running at %s" format serverurl)
         }
       case List("tldr", extras @ _*) =>
         serverurl match {
