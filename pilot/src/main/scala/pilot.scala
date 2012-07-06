@@ -5,6 +5,7 @@ import dispatch._
 
 object Pilot {
   import Exiting._
+  import Term._
 
   lazy val serverurl: Option[String] = Server.InfoFile.file match {
     case ne if (!ne.exists) => None
@@ -17,7 +18,7 @@ object Pilot {
       case Some(surl) =>
         f(surl)
       case _ =>
-        err("server not started. try the start command")
+        err("%s. try the start command" format red("server not started"))
     }
 
   val AnyUrl = """-u=(.+)""".r
@@ -34,7 +35,7 @@ object Pilot {
               Server.main(Array(uri))
             }
           case _ =>
-            err("server is already running at %s" format serverurl.get)
+            err("%s. server is already running at %s" format(red("beep"), serverurl.get))
         }
       case List("tldr") =>
         serving { surl =>
@@ -52,7 +53,7 @@ object Pilot {
               Http(page / "reload" > As.string)
                 .either().fold(err, ok)
             case _ =>
-              err("usage page [-r|-u=http://host.com] ")
+              err("usage: page [-r|-u=http://host.com] ")
           }
         }
       case List("net", extras @ _*) =>
@@ -71,6 +72,8 @@ object Pilot {
             case List("--clearcookies") =>
               Http(network / "clearBrowserCookies" > As.string)
                 .either().fold(err, ok)
+            case _ =>
+              err("usage: net [-e|--enable|-d|--disable|--clearcache|--clearcookies]")
           }
         }
       case List("docs") =>
