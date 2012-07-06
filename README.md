@@ -28,7 +28,7 @@ Reload the current tabs
      
 Open a new url
 
-     chrome page -u='http://github.com'
+     chromep page -u='http://github.com'
      
 You can also get the docs (this readme) for chromep from the command line with
 
