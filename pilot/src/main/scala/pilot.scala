@@ -1,9 +1,17 @@
 package chrome
 
 import xsbti.{ AppMain, AppConfiguration }
-import dispatch.Http
+import dispatch._
 
 object Pilot {
+  import Exiting._
+
+  lazy val serverurl: Option[String] = Server.InfoFile.file match {
+    case ne if (!ne.exists) => None
+    case f =>
+      io.Source.fromFile(f).getLines().toList.headOption
+  }
+
   def apply(args: Array[String]): Int = {
     args.toList match {
       case List("start", extras @ _*) =>
@@ -14,11 +22,18 @@ object Pilot {
         }
         // todo. pilot should start a server
         // and write a .pid file which contains its host and port
-        Server.main(Array(uri))
-        0
+        ok {
+          Server.main(Array(uri))
+        }
+      case List("tldr", extras @ _*) =>
+        serverurl match {
+          case Some(surl) =>
+            Http(url(surl) / "tldr" OK As.string)
+              .either().fold(err, ok)
+          case _ => err("server not started. try the start command")
+        }
       case _ =>
-        System.err.println("usage: start [uri]")
-        1
+        err("usage: start [uri]")
     }
   }
 }
