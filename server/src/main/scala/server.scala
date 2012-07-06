@@ -43,8 +43,8 @@ object Server {
             println("communicating with %d chrome tabs" format tabs.size)          
             srvc.handler(Planify{
               case Path(Seg("tldr" :: Nil)) =>
-                import Show._
-                ResponseString(tabs.map(t => Show.apply(t)).mkString("\n"))
+                import TerminalDisplay._
+                ResponseString(tabs.map(t => Show.apply(t)).mkString("\n\n"))
             }).handler(Planify(Debug.path))
               .run({ s => () }, { s =>
                 println("shutting down %s connections" format tabs.filter(_.socket.open).size)

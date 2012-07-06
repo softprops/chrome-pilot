@@ -4,11 +4,11 @@ import net.liftweb.json._
 import net.liftweb.json.JsonDSL._
 
 case class TabInfo(frontEndUrl: String,
-                      faviconUrl: String,
-                      thumbnail: String,
-                      title: String,
-                      url: String,
-                      wsdebugUrl: String)
+                   faviconUrl: String,
+                   thumbnail: String,
+                   title: String,
+                   url: String,
+                   wsdebugUrl: String)
 
 object TabInfo {
   def fromJson(js: JValue) = for {
