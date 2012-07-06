@@ -11,7 +11,6 @@ object Show {
   def apply[T: Show](t: T) = implicitly[Show[T]].show(t)
 }
 
-
 object TerminalDisplay {
   implicit object ShowTab extends Show[Tab] {
     import Term._
