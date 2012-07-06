@@ -26,7 +26,7 @@ object Pilot {
               Server.main(Array(uri))
             }
           case _ =>
-            err("server is already running at %s" format serverurl)
+            err("server is already running at %s" format serverurl.get)
         }
       case List("tldr", extras @ _*) =>
         serverurl match {

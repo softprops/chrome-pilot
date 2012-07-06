@@ -92,8 +92,9 @@ object Server {
                 println("shutting down dispatch")
                 Server.shutdown
               }
-              .start
-              InfoFile.write(srvc.url)
+              .run({ s =>
+                InfoFile.write(s.url)
+              })
               Started(srvc.url)
           })
       case _ =>
