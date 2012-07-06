@@ -29,12 +29,6 @@ object Server {
         val srvc = NHttp.anylocal
         val countdown = new Countdown(0)({ srvc.stop() })
         Http(url(uri) OK Json.parsed).either.right.map { js =>
-          js match {
-            case JArray(ary) =>
-              countdown.reset(ary.size)
-            case _ => 
-              System.err.println(red("expected json array from chrome"))
-          }
           TabInfo.fromJson(js)
                   .filter(!_.title.startsWith("chrome-extension:"))
                   .map { info =>              
@@ -54,6 +48,7 @@ object Server {
           }, { tabs =>
             if (tabs.isEmpty) FailedStart("you have no tabs open")
             else {
+              countdown.reset(tabs.size)
               println("%s with %s chrome tabs" format(
                 green("communicating"), bold(tabs.size)))
               srvc.handler(Planify{
