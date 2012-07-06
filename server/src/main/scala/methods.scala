@@ -18,6 +18,18 @@ object Methods {
       case m =>
         ("id" -> m.id) ~ ("method" -> m.method)
     }))
+
+  def serialize(cmd: String, meth: String, args: Map[String, Seq[String]]): String =
+    if (args.isEmpty) serialize(new Method {
+      val id = Ids.next
+      val method = "%s.%s" format(cmd, meth)
+    }) else serialize(new ParameterizedMethod {
+      val id = Ids.next
+      val method = "%s.%s" format(cmd, meth)
+      val params: JValue = args.map {
+        case (k, vs) => (k -> vs.headOption)
+      }
+    })
 }
 
 trait Method {
@@ -33,6 +45,14 @@ trait Response {
   def id: Int
   def error: JObject
   def result: JObject
+}
+
+object Network {
+  def ns(cmd: String) = "Network.%s" format cmd
+  def enable = new Method {
+    val id = Ids.next
+    val method = ns("enable")
+  }
 }
 
 object Page {

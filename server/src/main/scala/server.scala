@@ -11,34 +11,6 @@ import unfiltered.request._
 import unfiltered.response._
 
 object Server {
-  sealed trait Status {
-    def message: String
-  }
-  case class Started(url: String) extends Status {
-    def message = url
-  }
-  case class FailedStart(val message: String) extends Status
-  case object Usage extends Status {
-    def message = "usage: start [debugurl]"
-  }
-
-  object InfoFile {
-    import java.io.{ File, FileWriter }
-    val base = System.getProperty("user.home")
-    val name = ".chromep"
-    def file = new File(base, name)
-    def write(url: String) = {
-      val f = file
-      if (!f.getParentFile().exists()) f.mkdirs()
-      if (!f.exists) f.createNewFile()
-      val w = new FileWriter(f)
-      w.write(url)
-      w.flush()
-      w.close()
-    }
-    def delete =
-      file.delete()
-  }
 
   def main(args: Array[String]) {
     run(args) match {
@@ -80,12 +52,21 @@ object Server {
             Server.shutdown
             FailedStart("failed to resolve chrome debug info %s" format err.getMessage)
           }, { tabs =>
-            println("communicating with %d chrome tabs" format tabs.size)          
-            srvc.handler(Planify{
-              case Path(Seg("tldr" :: Nil)) =>
-                import TerminalDisplay._
-                ResponseString(tabs.map(t => Show.apply(t)).mkString("\n\n"))
-            }).handler(Planify(Debug.path))
+            if (tabs.isEmpty) FailedStart("you have no tabs open")
+            else {
+              println("communicating with %d chrome tabs" format tabs.size)
+              srvc.handler(Planify{
+                case Path(Seg("tldr" :: Nil)) =>
+                  import TerminalDisplay._
+                  ResponseString(tabs.filter(_.socket.open).map(t => Show.apply(t)).mkString("\n\n"))
+                case POST(Path(Seg("exec"  :: cmd :: name :: Nil))) & Params(p) =>
+                  val msg = Methods.serialize(cmd, name, p)
+                  tabs.filter(_.socket.open).map { t =>
+                    t.socket.send(msg)                            
+                  }
+                  Accepted
+              })
+              .handler(Planify(Debug.path))
               .beforeStop {
                 println("shutting down %s connections" format tabs.filter(_.socket.open).size)
                 tabs.foreach(_.socket.close)
@@ -96,13 +77,44 @@ object Server {
                 InfoFile.write(s.url)
               })
               Started(srvc.url)
+            }
           })
       case _ =>
         Usage
     }
   }
+
   def shutdown = {
     Http.shutdown()
     InfoFile.delete
+  }
+
+  sealed trait Status {
+    def message: String
+  }
+  case class Started(url: String) extends Status {
+    def message = url
+  }
+  case class FailedStart(val message: String) extends Status
+  case object Usage extends Status {
+    def message = "usage: start [debugurl]"
+  }
+
+  object InfoFile {
+    import java.io.{ File, FileWriter }
+    val base = System.getProperty("user.home")
+    val name = ".chromep"
+    def file = new File(base, name)
+    def write(url: String) = {
+      val f = file
+      if (!f.getParentFile().exists()) f.mkdirs()
+      if (!f.exists) f.createNewFile()
+      val w = new FileWriter(f)
+      w.write(url)
+      w.flush()
+      w.close()
+    }
+    def delete =
+      file.delete()
   }
 }
