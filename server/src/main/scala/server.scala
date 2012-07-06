@@ -45,9 +45,7 @@ object Server {
               case Path(Seg("tldr" :: Nil)) =>
                 ResponseString(tabs.map(_.info.toString).mkString("\n"))
             }).handler(
-              Planify(Debug.path)).run({ s =>
-                println("server started @ %s" format s.url)
-              }, { s =>
+              Planify(Debug.path)).run({ s => () }, { s =>
                 println("shutting down %s connections" format tabs.filter(_.socket.open).size)
                 tabs.foreach(_.socket.close)
                 println("shutting down dispatch")
