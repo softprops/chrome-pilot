@@ -11,13 +11,13 @@ import unfiltered.request._
 import unfiltered.response._
 
 object Server {
-
+  import Term._
   def main(args: Array[String]) {
     run(args) match {
       case Started(url) =>
         println("started proxy on %s" format url)
       case FailedStart(msg) =>
-        System.err.println("error starting proxy: %s" format msg)
+        System.err.println("%s: %s" format(red("error starting proxy"), bold(msg)))
       case Usage =>
         System.err.println(Usage.message)
     }
@@ -33,19 +33,19 @@ object Server {
             case JArray(ary) =>
               countdown.reset(ary.size)
             case _ => 
-              System.err.println("expected json array from chrome")
+              System.err.println(red("expected json array from chrome"))
           }
           TabInfo.fromJson(js)
                   .filter(!_.title.startsWith("chrome-extension:"))
                   .map { info =>              
                     Tab(info, Channel.uri(info.wsdebugUrl) {
                       case Open(s) =>
-                        println("[%s] open" format info.title)
+                        println("[%s] %s" format(bold(info.title), magenta("open")))
                       case Close(s) =>
-                        println("[%s] closed" format info.title)
+                        println("[%s] %s" format(bold(info.title), magenta("closed")))
                         countdown.tick
                       case Message(m) =>
-                        println("[%s] %s" format(info.title, m))
+                        println("[%s] %s" format(bold(info.title), m))
                     })
                  }
           }().fold({ err =>
@@ -54,7 +54,8 @@ object Server {
           }, { tabs =>
             if (tabs.isEmpty) FailedStart("you have no tabs open")
             else {
-              println("communicating with %d chrome tabs" format tabs.size)
+              println("%s with %s chrome tabs" format(
+                green("communicating"), bold(tabs.size)))
               srvc.handler(Planify{
                 case Path(Seg("tldr" :: Nil)) =>
                   import TerminalDisplay._
@@ -68,13 +69,16 @@ object Server {
               })
               .handler(Planify(Debug.path))
               .beforeStop {
-                println("shutting down %s connections" format tabs.filter(_.socket.open).size)
+                val sd = green("shutting down")
+                println("%s %s connections" format(
+                  sd, bold(tabs.filter(_.socket.open).size)))
                 tabs.foreach(_.socket.close)
-                println("shutting down dispatch")
                 Server.shutdown
+                println("have a %s day" format(green("great")))
               }
               .run({ s =>
                 InfoFile.write(s.url)
+                println("%s chrome pilot" format(green("started")))
               })
               Started(srvc.url)
             }

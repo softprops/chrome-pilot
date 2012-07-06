@@ -14,19 +14,20 @@ object Show {
 
 object TerminalDisplay {
   implicit object ShowTab extends Show[Tab] {
+    import Term._
     def show(t: Tab): String =
       """[%s]
-      |url: %s
-      |front-end url: %s
-      |favicon url: %s
-      |thumbnail url: %s
-      |wsdebug url: %s""".stripMargin.format(
-        t.info.title,
-        t.info.url,
-        t.info.frontEndUrl,
-        t.info.faviconUrl,
-        t.info.thumbnail,
-        t.info.wsdebugUrl
+      |%s: %s
+      |%s: %s
+      |%s: %s
+      |%s: %s
+      |%s: %s""".stripMargin.format(
+        magenta(t.info.title),
+        bold("url"), t.info.url,
+        bold("front-end url"), t.info.frontEndUrl,
+        bold("favicon"), t.info.faviconUrl,
+        bold("thumbnail"), t.info.thumbnail,
+        bold("ws debug url"), t.info.wsdebugUrl
       )
   }
 }

@@ -21,7 +21,6 @@ object Pilot {
     }
 
   val AnyUrl = """-u=(.+)""".r
-  val Reload = """(-r)""".r
   def apply(args: Array[String]): Int = {
     args.toList match {
       case List("start", extras @ _*) =>
@@ -49,11 +48,29 @@ object Pilot {
             case List(AnyUrl(uri)) =>
               Http(page / "navigate" <<? Map("url" -> uri) > As.string)
                 .either().fold(err, ok)
-            case List(Reload(_), rextras @ _*) =>
+            case List("-r", rextras @ _*) =>
               Http(page / "reload" > As.string)
                 .either().fold(err, ok)
             case _ =>
               err("usage page [-r|-u=http://host.com] ")
+          }
+        }
+      case List("net", extras @ _*) =>
+        serving { surl =>
+          val network = url(surl).POST / "exec" / "Network"
+          extras.toList match {
+            case List("-e" | "--enable") =>
+              Http(network / "enable" > As.string)
+                .either().fold(err, ok)
+            case List("-d" | "--disable") =>
+              Http(network / "disable" > As.string)
+                .either().fold(err, ok)
+            case List("--clearcache") =>
+              Http(network / "clearBrowserCache" > As.string)
+                .either().fold(err, ok)
+            case List("--clearcookies") =>
+              Http(network / "clearBrowserCookies" > As.string)
+                .either().fold(err, ok)
           }
         }
       case List("docs") =>
@@ -69,7 +86,7 @@ object Pilot {
             .either().fold(err, ok)
         }
       case _ =>
-        err("usage: chromep: [start [-u=http://host.com]|page [-r|-u=http://host.com/]]")
+        err("usage: chromep: [start [-u=http://host.com]|page [-r|-u=http://host.com/]]|net [-d|--disable|-e|--enable|--clearcache|--clearcookies]")
     }
   }
 }
