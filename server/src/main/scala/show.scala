@@ -22,7 +22,7 @@ object TerminalDisplay {
       |%s: %s
       |%s: %s
       |%s: %s""".stripMargin.format(
-        magenta(t.info.title),
+        cyan(t.info.title),
         bold("url"), t.info.url,
         bold("front-end url"), t.info.frontEndUrl,
         bold("favicon"), t.info.faviconUrl,

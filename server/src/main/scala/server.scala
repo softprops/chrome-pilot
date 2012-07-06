@@ -40,12 +40,12 @@ object Server {
                   .map { info =>              
                     Tab(info, Channel.uri(info.wsdebugUrl) {
                       case Open(s) =>
-                        println("[%s] %s" format(bold(info.title), magenta("open")))
+                        println("[%s] %s" format(cyan(info.title), magenta("open")))
                       case Close(s) =>
-                        println("[%s] %s" format(bold(info.title), magenta("closed")))
+                        println("[%s] %s" format(cyan(info.title), magenta("closed")))
                         countdown.tick
                       case Message(m) =>
-                        println("[%s] %s" format(bold(info.title), m))
+                        println("[%s] %s" format(cyan(info.title), m))
                     })
                  }
           }().fold({ err =>
