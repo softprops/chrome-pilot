@@ -2,6 +2,10 @@
 
 [chrome][chrome] is your airship. your helm is the [command line][conscript].
 
+Install 
+
+    ... 
+
 ## usage
 
 Start chrome with a remote-debugging-port for a given port
@@ -10,7 +14,29 @@ Start chrome with a remote-debugging-port for a given port
      
 Start the pilot proxy server
 
-     ...
+     chromep start
+     
+Issue `chromep` some commands:
+
+Get a summary of the current tabs
+
+     chromep tldr
+
+Reload the current tabs
+
+     chromep page -r
+     
+Open a new url
+
+     chrome page -u='http://github.com'
+     
+You can also get the docs (this readme) for chromep from the command line with
+
+     chromep docs
+     
+If you find a bug you can also blame me with
+
+     chromep issues
      
 read more about the chrome remote [api][api].
      
