@@ -44,7 +44,7 @@ object Server {
             srvc.handler(Planify{
               case Path(Seg("tldr" :: Nil)) =>
                 import Show._
-                ResponseString(tabs.map(Show.apply).mkString("\n"))
+                ResponseString(tabs.map(t => Show.apply(t)).mkString("\n"))
             }).handler(Planify(Debug.path))
               .run({ s => () }, { s =>
                 println("shutting down %s connections" format tabs.filter(_.socket.open).size)
