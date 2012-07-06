@@ -30,6 +30,22 @@ Open a new url
 
      chromep page -u='http://github.com'
      
+Enable network debugging
+
+     chromep net -e
+
+Disable network debugging
+
+     chromep net -d
+     
+Clear your browser cookies
+
+     chromep net --clearcookies
+     
+Clear your browsers cache
+
+     chromep net --clearcache
+     
 You can also get the docs (this readme) for chromep from the command line with
 
      chromep docs
